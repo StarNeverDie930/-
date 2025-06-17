@@ -1,0 +1,5 @@
+org\example\aStar\Node.class
+org\example\aStar\Solution.class
+org\example\application\Application.class
+org\example\navigator\Navigator.class
+org\example\utils\ConnectionUtil.class
