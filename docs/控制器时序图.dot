@@ -1,0 +1,24 @@
+digraph ControllerSequence {
+  rankdir=LR;
+  node [shape=box, fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+  
+  User [label="用户界面", shape=ellipse];
+  Controller [label="控制器"];
+  Navigator [label="导航器"];
+  TaskJudge [label="任务判断"];
+  Redis [label="Redis", shape=cylinder];
+  RabbitMQ [label="RabbitMQ", shape=cylinder];
+  
+  User -> Controller [label="发送控制指令"];
+  Controller -> Redis [label="读取/写入状态"];
+  Controller -> RabbitMQ [label="发送任务请求"];
+  RabbitMQ -> Navigator [label="任务分配"];
+  Navigator -> Redis [label="读取地图数据"];
+  Navigator -> RabbitMQ [label="返回路径结果"];
+  RabbitMQ -> Controller [label="接收路径指令"];
+  Controller -> TaskJudge [label="检查任务状态"];
+  TaskJudge -> Redis [label="查询终点状态"];
+  TaskJudge -> Controller [label="返回评估结果"];
+  Controller -> User [label="反馈信息"];
+}

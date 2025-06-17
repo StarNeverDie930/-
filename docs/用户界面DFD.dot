@@ -1,0 +1,57 @@
+digraph 用户界面DFD {
+    graph [fontname="Microsoft YaHei"];
+    node [fontname="Microsoft YaHei"];
+    edge [fontname="Microsoft YaHei"];
+    
+    // 外部实体
+    用户 [shape=rectangle];
+    
+    // 处理过程
+    用户注册 [shape=ellipse];
+    登录验证 [shape=ellipse];
+    主控制台 [shape=ellipse];
+    地图编辑器 [shape=ellipse];
+    地图显示 [shape=ellipse];
+    小车控制 [shape=ellipse];
+    任务显示 [shape=ellipse];
+    回放控制 [shape=ellipse];
+    
+    // 数据存储
+    用户凭据 [shape=cylinder];
+    地图数据 [shape=cylinder];
+    小车状态 [shape=cylinder];
+    任务数据 [shape=cylinder];
+    回放数据 [shape=cylinder];
+    系统日志 [shape=cylinder];
+    
+    // 数据流
+    用户 -> 用户注册 [label="注册信息"];
+    用户注册 -> 用户凭据 [label="新用户数据"];
+    
+    用户 -> 登录验证 [label="用户名/密码"];
+    登录验证 -> 用户凭据 [label="验证请求"];
+    用户凭据 -> 登录验证 [label="验证结果"];
+    登录验证 -> 主控制台 [label="登录状态"];
+    
+    主控制台 -> 地图编辑器 [label="编辑指令"];
+    地图编辑器 -> 地图数据 [label="地图修改"];
+    地图数据 -> 地图显示 [label="地图更新"];
+    地图显示 -> 用户 [label="地图界面"];
+    
+    主控制台 -> 小车控制 [label="控制指令"];
+    小车控制 -> 小车状态 [label="控制命令"];
+    小车状态 -> 地图显示 [label="位置更新"];
+    
+    任务数据 -> 任务显示 [label="任务信息"];
+    任务显示 -> 用户 [label="任务界面"];
+    
+    主控制台 -> 回放控制 [label="回放请求"];
+    回放控制 -> 回放数据 [label="回放查询"];
+    回放数据 -> 回放控制 [label="回放记录"];
+    回放控制 -> 地图显示 [label="回放数据"];
+    
+    登录验证 -> 系统日志 [label="登录日志"];
+    地图编辑器 -> 系统日志 [label="编辑日志"];
+    小车控制 -> 系统日志 [label="控制日志"];
+    回放控制 -> 系统日志 [label="回放日志"];
+}

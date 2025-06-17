@@ -1,0 +1,289 @@
+@startuml
+
+' #######################
+' ### 系统整体架构说明 ###
+' #######################
+
+' 1. 应用层 (Application Layer)
+package "应用层" {
+  package "用户界面" {
+    class "LoginFrame" as LoginFrame
+    class "CarAdventureMainJFrame" as MainFrame
+    class "MainJPanel" as MainPanel
+    class "ReplayFrame" as ReplayFrame
+    
+    MainFrame --> LoginFrame : 用户认证
+    MainFrame --> MainPanel : 主界面显示
+    MainPanel --> ReplayFrame : 回放功能
+  }
+  
+  package "事件处理" {
+    class "EventUtils" as EventUtils
+    enum "Mode" as ModeEnum
+    
+    EventUtils --> ModeEnum : 使用
+    MainPanel --> EventUtils : 事件处理
+  }
+}
+
+' 2. 业务逻辑层 (Business Logic Layer)
+package "业务逻辑层" {
+  package "控制器" {
+    class "ControllerFactory" as ControllerFactory
+    class "Controller" as Controller
+    
+    ControllerFactory --> Controller : 创建
+  }
+  
+  package "任务判断" {
+    class "CarTaskJudgeFactory" as TaskJudgeFactory
+    class "CarTaskJudge" as TaskJudge
+    
+    TaskJudgeFactory --> TaskJudge : 创建
+  }
+  
+  package "导航器" {
+    class "Navigator" as Navigator
+    class "Solution" as Solution
+    class "DLite" as DLite
+    
+    Navigator --> Solution : 路径规划
+    Navigator --> DLite : 动态路径规划
+  }
+  
+  package "实体" {
+    class "Car" as Car
+    class "Block" as Block
+    class "AllData" as AllData
+    
+    Car --> Block : 避障
+    Car --> AllData : 状态存储
+  }
+}
+
+' 3. 服务层 (Service Layer)
+package "消息队列" {
+    component "RabbitMQ" as RabbitMQ
+    queue "workQueue" as WorkQueue
+    queue "controllerQueue" as CtrlQueue
+    queue "taskJudgeQueue" as TaskQueue
+
+    RabbitMQ -down-> WorkQueue : 任务分发
+    RabbitMQ -down-> CtrlQueue : 控制指令
+    RabbitMQ -down-> TaskQueue : 任务状态
+}
+
+  
+  package "数据存储" {
+    [Redis] as Redis
+    database "地图数据" as MapData
+    database "小车状态" as CarStatus
+    database "任务状态" as TaskStatus
+    
+    Redis --> MapData : 存储
+    Redis --> CarStatus : 存储
+    Redis --> TaskStatus : 存储
+  }
+  
+  package "数据库" {
+    [SQLServer] as SQLServer
+    table "用户表" as UserTable
+    table "回放记录" as ReplayTable
+    
+    SQLServer --> UserTable : 存储
+    SQLServer --> ReplayTable : 存储
+  }
+  
+  package "连接工具" {
+    class "ConnectionUtil" as ConnUtil
+    
+    ConnUtil --> RabbitMQ : 连接
+    ConnUtil --> Redis : 连接
+    ConnUtil --> SQLServer : 连接
+  }
+}
+
+' 4. 基础设施层 (Infrastructure Layer)
+package "基础设施层" {
+  [Jenkins] as Jenkins
+  [Git] as Git
+  [Elasticsearch] as ES
+  [ElasticJob] as ElasticJob
+}
+
+' #######################
+' ### 组件交互关系 ###
+' #######################
+
+' 1. 用户界面交互
+LoginFrame --> SQLServer : 用户认证
+MainPanel --> Redis : 读写地图状态
+MainPanel --> RabbitMQ : 算法切换
+ReplayFrame --> SQLServer : 查询回放数据
+
+' 2. 控制器交互
+Controller --> RabbitMQ : 发送/接收指令
+Controller --> Redis : 读写任务状态
+ControllerFactory --> RabbitMQ : 创建通道
+
+' 3. 任务判断交互
+TaskJudge --> Redis : 检查任务状态
+TaskJudgeFactory --> RabbitMQ : 注册监听
+
+' 4. 导航器交互
+Navigator --> Redis : 读取地图/写入路径
+Navigator --> RabbitMQ : 监听任务
+
+' 5. 小车交互
+Car --> RabbitMQ : 接收移动指令
+Car --> Redis : 更新位置状态
+
+' 6. 基础设施交互
+Jenkins --> Git : 代码构建
+Elasticsearch --> Redis : 可选日志收集
+ElasticJob --> RabbitMQ : 可选任务调度
+
+' #######################
+' ### 详细类定义 ###
+' #######################
+
+' 1. 用户界面类详细定义
+class MainPanel {
+  +LinkedList<Car> carList
+  +LinkedList<Block> blockList
+  +HashMap<String, LinkedList<Character>> tasksMapList
+  +Timer timer
+  +void init()
+  +void actionPerformed(ActionEvent e)
+}
+
+class EventUtils {
+  +enum Mode {EDIT, PLAY, REPLAY}
+  +static String Algorithm
+  +static Jedis jedis
+  +static void initEventHandlers()
+}
+
+' 2. 控制器类详细定义
+class Controller {
+  +static final String CONTROLLER_REGISTRY
+  +static final String WORK_QUEUE
+  +static final String CAR_DIRECT_EXCHANGE
+  +AtomicBoolean isWork
+  +String carId
+  +Jedis jedis
+  +Channel channel
+  +void run()
+}
+
+' 3. 导航器类详细定义
+class Navigator {
+  +static final String WORK_QUEUE
+  +static final int RECONNECT_DELAY
+  +AtomicBoolean isWork
+  +Jedis jedis
+  +Channel channel
+  +Random random
+  +void run()
+}
+
+' 4. 小车类详细定义
+class Car {
+  +static final char UP, DOWN, LEFT, RIGHT
+  +static final int HEARTBEAT_INTERVAL
+  +static boolean isStarted
+  +boolean isWork
+  +void run()
+}
+
+' 5. 连接工具类详细定义
+class ConnectionUtil {
+  +static final String CHANNEL_USERNAME
+  +static final String CHANNEL_PASSWORD
+  +static final String HOST
+  +static final int JEDIS_PORT
+  +static final int CHANNEL_PORT
+  +static Connection getConnection()
+  +static Jedis getJedis()
+}
+
+' #######################
+' ### 消息流定义 ###
+' #######################
+
+' 1. 用户登录流程
+LoginFrame -> SQLServer : 认证请求
+SQLServer --> LoginFrame : 认证结果
+LoginFrame -> MainFrame : 打开主界面
+
+' 2. 小车控制流程
+MainPanel -> RabbitMQ : 算法选择
+RabbitMQ -> Navigator : 路径规划
+Navigator -> Redis : 写入路径
+Controller -> Redis : 读取路径
+Controller -> RabbitMQ : 发送指令
+RabbitMQ -> Car : 移动指令
+Car -> Redis : 更新位置
+
+' 3. 任务判断流程
+Car -> Redis : 位置更新
+TaskJudge -> Redis : 检查终点
+TaskJudge -> RabbitMQ : 任务完成
+RabbitMQ -> Controller : 通知完成
+
+' 4. 回放流程
+ReplayFrame -> SQLServer : 查询记录
+SQLServer --> ReplayFrame : 返回数据
+ReplayFrame -> MainPanel : 显示回放
+
+' #######################
+' ### 系统配置 ###
+' #######################
+
+note top of Redis
+  配置参数:
+  - 主机: 118.230.230.151
+  - 端口: 6379
+  - 连接池: JedisPool
+end note
+
+note top of RabbitMQ
+  配置参数:
+  - 主机: 118.230.230.151
+  - 端口: 5672
+  - 虚拟主机: /
+  - 用户名: sa2025
+  - 密码: sa2025
+end note
+
+note top of SQLServer
+  配置参数:
+  - 连接字符串: jdbc:sqlserver://...
+  - 用户名: sa
+  - 密码: password
+end note
+
+' #######################
+' ### 系统约束 ###
+' #######################
+
+note right of Controller
+  系统约束:
+  - 心跳间隔: 5000ms
+  - 指令间隔: 500ms
+  - 发布超时: 5000ms
+end note
+
+note right of Car
+  系统约束:
+  - 心跳间隔: 5000ms
+  - 移动速度: 40ms/格
+end note
+
+note right of Navigator
+  系统约束:
+  - 重连延迟: 1000ms
+  - 路径规划超时: 10000ms
+end note
+
+@enduml

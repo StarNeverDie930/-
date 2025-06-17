@@ -1,0 +1,19 @@
+digraph ControllerFlow {
+  rankdir=TB;
+  node [shape=rectangle, style=filled, color=lightblue, fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+  
+  start [label="开始", shape=ellipse];
+  checkComponents [label="检查组件状态"];
+  requestTask [label="请求任务"];
+  processTask [label="处理任务"];
+  sendInstruction [label="发送指令"];
+  end [label="结束", shape=ellipse];
+  
+  start -> checkComponents;
+  checkComponents -> requestTask [label="组件正常"];
+  checkComponents -> end [label="组件异常"];
+  requestTask -> processTask;
+  processTask -> sendInstruction;
+  sendInstruction -> checkComponents;
+}

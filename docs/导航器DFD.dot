@@ -1,0 +1,57 @@
+digraph 导航器DFD {
+    graph [fontname="Microsoft YaHei"];
+    node [fontname="Microsoft YaHei"];
+    edge [fontname="Microsoft YaHei"];
+    
+    // 外部实体
+    控制器 [shape=rectangle];
+    Redis [shape=cylinder];
+    RabbitMQ [shape=cylinder];
+    
+    // 处理过程
+    任务接收 [shape=ellipse];
+    算法选择 [shape=diamond];
+    A星算法 [shape=ellipse];
+    DLite算法 [shape=ellipse];
+    目标点选择 [shape=ellipse];
+    障碍物检测 [shape=ellipse];
+    路径生成 [shape=ellipse];
+    路径优化 [shape=ellipse];
+    指令发送 [shape=ellipse];
+    
+    // 数据存储
+    路径缓存 [shape=cylinder];
+    导航日志 [shape=cylinder];
+    地图数据 [shape=cylinder];
+    小车状态 [shape=cylinder];
+    
+    // 数据流
+    控制器 -> 任务接收 [label="导航请求"];
+    任务接收 -> RabbitMQ [label="监听队列"];
+    RabbitMQ -> 任务接收 [label="任务消息"];
+    
+    任务接收 -> 算法选择 [label="任务类型"];
+    算法选择 -> A星算法 [label="静态环境"];
+    算法选择 -> DLite算法 [label="动态环境"];
+    
+    任务接收 -> 目标点选择 [label="小车ID"];
+    目标点选择 -> Redis [label="查询状态"];
+    Redis -> 目标点选择 [label="当前位置"];
+    Redis -> 目标点选择 [label="地图尺寸"];
+    Redis -> 障碍物检测 [label="障碍物信息"];
+    
+    目标点选择 -> 障碍物检测 [label="候选目标"];
+    障碍物检测 -> 目标点选择 [label="有效目标"];
+    
+    A星算法 -> 路径生成 [label="静态路径"];
+    DLite算法 -> 路径生成 [label="动态路径"];
+    路径生成 -> 路径优化 [label="初始路径"];
+    路径优化 -> 指令发送 [label="优化路径"];
+    
+    指令发送 -> RabbitMQ [label="移动指令"];
+    指令发送 -> Redis [label="更新状态"];
+    
+    路径生成 -> 路径缓存 [label="路径存储"];
+    路径缓存 -> 路径优化 [label="历史路径"];
+    指令发送 -> 导航日志 [label="导航记录"];
+}

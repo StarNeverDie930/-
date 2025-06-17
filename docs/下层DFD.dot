@@ -1,0 +1,95 @@
+digraph LowerLevelDFD {
+  graph [fontname="Microsoft YaHei"];
+  node [fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+  rankdir=LR;
+  
+  // 用户界面模块
+  subgraph cluster_UI {
+    label="用户界面模块";
+    
+    "登录界面" [shape=ellipse];
+    "主控制台" [shape=rectangle];
+    "地图编辑器" [shape=rectangle];
+    "回放系统" [shape=rectangle];
+    
+    "登录界面" -> "主控制台" [label="用户凭证"];
+    "主控制台" -> "地图编辑器" [label="编辑指令"];
+    "主控制台" -> "回放系统" [label="回放请求"];
+  }
+  
+  // 控制器模块
+  subgraph cluster_Controller {
+    label="控制器模块";
+    
+    "指令接收" [shape=rectangle];
+    "任务分配" [shape=rectangle];
+    "状态监控" [shape=rectangle];
+    
+    "指令接收" -> "任务分配" [label="控制指令"];
+    "任务分配" -> "状态监控" [label="任务状态"];
+  }
+  
+  // 导航器模块
+  subgraph cluster_Navigator {
+    label="导航器模块";
+    
+    "路径规划" [shape=rectangle];
+    "动态避障" [shape=rectangle];
+    "算法选择" [shape=diamond];
+    
+    "算法选择" -> "路径规划" [label="A*算法"];
+    "算法选择" -> "动态避障" [label="D*Lite算法"];
+  }
+  
+  // 任务判断模块
+  subgraph cluster_TaskJudge {
+    label="任务判断模块";
+    
+    "终点检测" [shape=rectangle];
+    "任务评估" [shape=rectangle];
+    "结果反馈" [shape=rectangle];
+    
+    "终点检测" -> "任务评估" [label="位置数据"];
+    "任务评估" -> "结果反馈" [label="评估结果"];
+  }
+  
+  // 数据存储
+  "地图数据" [shape=note, color=lightyellow];
+  "小车状态" [shape=note, color=lightyellow];
+  "任务队列" [shape=note, color=lightyellow];
+  
+  // 模块间数据流
+  "主控制台" -> "指令接收" [label="用户指令"];
+  "任务分配" -> "路径规划" [label="导航请求"];
+  "路径规划" -> "终点检测" [label="路径结果"];
+  "动态避障" -> "任务分配" [label="避障指令"];
+  "结果反馈" -> "主控制台" [label="任务状态"];
+  
+  // 数据存储交互
+  "地图编辑器" -> "地图数据" [label="地图更新"];
+  "路径规划" -> "地图数据" [label="地图读取"];
+  "状态监控" -> "小车状态" [label="状态更新"];
+  "任务分配" -> "任务队列" [label="任务发布"];
+  "终点检测" -> "小车状态" [label="位置查询"];
+  
+  // 外部系统
+  "Redis" [shape=cylinder, color=lightgrey];
+  "RabbitMQ" [shape=cylinder, color=lightgrey];
+  "SQL Server" [shape=cylinder, color=lightgrey];
+  
+  "地图数据" -> "Redis" [label="数据同步"];
+  "小车状态" -> "Redis" [label="数据同步"];
+  "任务队列" -> "RabbitMQ" [label="消息传递"];
+  "回放系统" -> "SQL Server" [label="查询记录"];
+  
+  // 图例说明
+  subgraph cluster_legend {
+    label="图例说明";
+    "外部实体" [shape=ellipse];
+    "处理过程" [shape=rectangle];
+    "数据存储" [shape=note];
+    "决策点" [shape=diamond];
+    "数据流" [shape=plaintext];
+  }
+}

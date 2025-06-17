@@ -1,0 +1,49 @@
+digraph 局部软件结构 {
+  graph [fontname="Microsoft YaHei"];
+  node [fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+
+  // 控制器内部组件
+  subgraph cluster_controller {
+    label="控制器";
+    指令解析 [shape=ellipse];
+    任务分配 [shape=ellipse];
+    状态管理 [shape=ellipse];
+  }
+
+  // 导航器内部组件
+  subgraph cluster_navigator {
+    label="导航器";
+    任务接收 [shape=ellipse];
+    算法选择 [shape=ellipse];
+    路径生成 [shape=ellipse];
+  }
+
+  // 任务判断内部组件
+  subgraph cluster_taskjudge {
+    label="任务判断";
+    任务解析 [shape=ellipse];
+    终点计算 [shape=ellipse];
+    状态检查 [shape=ellipse];
+  }
+
+  // 数据流
+  指令解析 -> 任务分配;
+  任务分配 -> 任务接收;
+  任务接收 -> 算法选择;
+  算法选择 -> 路径生成;
+  路径生成 -> 任务分配;
+  任务分配 -> 任务解析;
+  任务解析 -> 终点计算;
+  终点计算 -> 状态检查;
+  状态检查 -> 任务分配;
+
+  // 外部存储
+  Redis [shape=cylinder];
+  RabbitMQ [shape=cylinder];
+
+  状态管理 -> Redis [label="状态更新"];
+  路径生成 -> Redis [label="路径存储"];
+  任务分配 -> RabbitMQ [label="任务发布"];
+  任务接收 -> RabbitMQ [label="任务监听"];
+}

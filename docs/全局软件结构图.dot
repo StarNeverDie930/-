@@ -1,0 +1,29 @@
+digraph 全局软件结构 {
+  graph [fontname="Microsoft YaHei"];
+  node [fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+
+  // 系统组件
+  用户界面 [shape=box];
+  控制器 [shape=box];
+  导航器 [shape=box];
+  任务判断 [shape=box];
+
+  // 外部系统
+  Redis [shape=cylinder];
+  RabbitMQ [shape=cylinder];
+  SQLServer [shape=cylinder];
+
+  // 数据流
+  用户界面 -> 控制器 [label="控制指令"];
+  控制器 -> 导航器 [label="路径请求"];
+  导航器 -> 控制器 [label="路径结果"];
+  控制器 -> 任务判断 [label="任务状态"];
+  任务判断 -> 控制器 [label="评估结果"];
+
+  // 外部系统交互
+  控制器 -> RabbitMQ [label="指令发布"];
+  导航器 -> Redis [label="地图读取"];
+  任务判断 -> Redis [label="状态查询"];
+  用户界面 -> SQLServer [label="用户认证"];
+}

@@ -1,0 +1,42 @@
+digraph 任务评判器DFD {
+    graph [fontname="Microsoft YaHei"];
+    node [fontname="Microsoft YaHei"];
+    edge [fontname="Microsoft YaHei"];
+    
+    // 外部实体
+    控制器 [shape=rectangle];
+    导航器 [shape=rectangle];
+    Redis [shape=rectangle];
+    
+    // 处理过程
+    任务接收 [shape=ellipse];
+    任务解析 [shape=ellipse];
+    终点计算 [shape=ellipse];
+    状态检查 [shape=ellipse];
+    结果反馈 [shape=ellipse];
+    
+    // 数据存储
+    任务规则库 [shape=cylinder];
+    评判记录 [shape=cylinder];
+    小车状态 [shape=cylinder];
+    地图数据 [shape=cylinder];
+    
+    // 数据流
+    控制器 -> 任务接收 [label="任务请求"];
+    任务接收 -> 任务解析 [label="原始任务"];
+    任务解析 -> 终点计算 [label="解析后任务"];
+    
+    Redis -> 任务解析 [label="小车当前位置"];
+    Redis -> 终点计算 [label="地图尺寸"];
+    Redis -> 状态检查 [label="终点状态"];
+    
+    终点计算 -> 状态检查 [label="计算终点坐标"];
+    状态检查 -> 结果反馈 [label="终点状态"];
+    结果反馈 -> 控制器 [label="任务反馈"];
+    
+    状态检查 -> 评判记录 [label="评判过程"];
+    评判记录 -> 状态检查 [label="历史记录"];
+    
+    状态检查 -> Redis [label="任务状态更新"];
+    终点计算 -> 评判记录 [label="终点坐标"];
+}

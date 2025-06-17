@@ -1,0 +1,29 @@
+digraph NavigatorFlow {
+  rankdir=TB;
+  node [shape=rectangle, style=filled, color=lightblue, fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+  
+  start [label="开始", shape=ellipse];
+  receiveTask [label="接收任务"];
+  selectAlgorithm [label="选择算法"];
+  aStar [label="A*算法"];
+  dLite [label="D*Lite算法"];
+  selectTarget [label="选择目标点"];
+  detectObstacle [label="障碍物检测"];
+  generatePath [label="生成路径"];
+  optimizePath [label="优化路径"];
+  sendInstruction [label="发送指令"];
+  end [label="结束", shape=ellipse];
+  
+  start -> receiveTask;
+  receiveTask -> selectAlgorithm;
+  selectAlgorithm -> aStar [label="静态环境"];
+  selectAlgorithm -> dLite [label="动态环境"];
+  aStar -> selectTarget;
+  dLite -> selectTarget;
+  selectTarget -> detectObstacle;
+  detectObstacle -> generatePath;
+  generatePath -> optimizePath;
+  optimizePath -> sendInstruction;
+  sendInstruction -> end;
+}

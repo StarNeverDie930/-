@@ -1,0 +1,52 @@
+digraph TopLevelDFD {
+  graph [fontname="Microsoft YaHei"];
+  node [fontname="Microsoft YaHei"];
+  edge [fontname="Microsoft YaHei"];
+  rankdir=LR;
+  node [shape=rectangle, style=filled, color=lightblue];
+  
+  // 外部实体
+  "用户" [shape=ellipse, color=pink];
+  "Redis服务器" [shape=cylinder, color=lightgrey];
+  "RabbitMQ服务器" [shape=cylinder, color=lightgrey];
+  "SQL Server数据库" [shape=cylinder, color=lightgrey];
+  
+  // 主要处理过程
+  "用户界面" [shape=rectangle];
+  "控制器" [shape=rectangle];
+  "导航器" [shape=rectangle];
+  "任务判断" [shape=rectangle];
+  
+  // 数据存储
+  "地图数据" [shape=note, color=lightyellow];
+  "小车状态" [shape=note, color=lightyellow];
+  "任务队列" [shape=note, color=lightyellow];
+  
+  // 数据流
+  "用户" -> "用户界面" [label="登录信息"];
+  "用户界面" -> "控制器" [label="控制指令"];
+  "控制器" -> "导航器" [label="路径请求"];
+  "导航器" -> "地图数据" [label="读取地图"];
+  "地图数据" -> "导航器" [label="地图信息"];
+  "导航器" -> "任务队列" [label="路径结果"];
+  "任务队列" -> "控制器" [label="路径指令"];
+  "控制器" -> "小车状态" [label="状态更新"];
+  "小车状态" -> "任务判断" [label="位置信息"];
+  "任务判断" -> "控制器" [label="任务状态"];
+  "控制器" -> "用户界面" [label="反馈信息"];
+  
+  // 外部系统交互
+  "用户界面" -> "SQL Server数据库" [label="用户认证"];
+  "地图数据" -> "Redis服务器" [label="数据同步"];
+  "小车状态" -> "Redis服务器" [label="数据同步"];
+  "任务队列" -> "RabbitMQ服务器" [label="消息传递"];
+  
+  // 图例说明
+  subgraph cluster_legend {
+    label="图例说明";
+    "外部实体" [shape=ellipse];
+    "处理过程" [shape=rectangle];
+    "数据存储" [shape=note];
+    "数据流" [shape=plaintext];
+  }
+}

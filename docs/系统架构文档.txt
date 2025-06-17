@@ -1,0 +1,61 @@
+# 系统架构文档
+
+## 1. 软件整体结构
+
+系统采用分层架构，包含以下层次：
+- 应用层：用户界面、事件处理
+- 业务逻辑层：控制器、任务判断、导航器
+- 服务层：消息队列(RabbitMQ)、数据存储(Redis)、数据库(SQL Server)
+- 基础设施层：CI/CD、版本控制
+
+## 2. 构件清单
+
+### 2.1 控制器(Controller)
+- 公开接口：
+  - run(): 主运行方法
+  - checkComponents(): 检查组件状态
+  - requestTask(): 请求任务
+  - sendInstruction(): 发送指令
+  - processTask(): 处理任务
+
+### 2.2 任务判断(CarTaskJudge)
+- 公开接口：
+  - checkEndPoint(): 检查终点状态
+  - clearTask(): 清空任务
+
+### 2.3 导航器(Navigator)
+- 公开接口：
+  - planPath(): 路径规划
+  - selectTarget(): 选择目标点
+  - detectObstacle(): 障碍物检测
+
+## 3. 连接件清单
+
+### 3.1 Redis连接
+- 协议：RESP(Redis Serialization Protocol)
+- 角色：
+  - 存储地图数据
+  - 存储小车状态
+  - 存储任务状态
+
+### 3.2 RabbitMQ连接
+- 协议：AMQP 0.9.1
+- 角色：
+  - 任务分发(workQueue)
+  - 控制指令(controllerQueue)
+  - 任务状态(taskJudgeQueue)
+
+## 4. 运行规则与约束
+
+1. 控制器运行约束：
+   - 心跳间隔: 5000ms
+   - 指令间隔: 500ms
+   - 发布超时: 5000ms
+
+2. 小车运行约束：
+   - 心跳间隔: 5000ms
+   - 移动速度: 40ms/格
+
+3. 导航器运行约束：
+   - 重连延迟: 1000ms
+   - 路径规划超时: 10000ms

@@ -1,0 +1,57 @@
+digraph 控制器DFD {
+    graph [fontname="Microsoft YaHei"];
+    node [fontname="Microsoft YaHei"];
+    edge [fontname="Microsoft YaHei"];
+    
+    // 外部实体
+    用户界面 [shape=rectangle];
+    导航器 [shape=rectangle];
+    任务判断 [shape=rectangle];
+    Redis [shape=rectangle];
+    RabbitMQ [shape=rectangle];
+    
+    // 处理过程
+    指令解析 [shape=ellipse];
+    任务分配 [shape=ellipse];
+    状态管理 [shape=ellipse];
+    组件检查 [shape=ellipse];
+    任务请求 [shape=ellipse];
+    指令发送 [shape=ellipse];
+    任务处理 [shape=ellipse];
+    
+    // 数据存储
+    任务队列 [shape=cylinder];
+    小车状态 [shape=cylinder];
+    系统配置 [shape=cylinder];
+    地图数据 [shape=cylinder];
+    
+    // 数据流
+    用户界面 -> 指令解析 [label="用户指令"];
+    指令解析 -> 任务分配 [label="解析结果"];
+    任务分配 -> 任务队列 [label="任务列表"];
+    任务队列 -> 任务分配 [label="待处理任务"];
+    任务分配 -> 导航器 [label="导航请求"];
+    导航器 -> 任务处理 [label="路径结果"];
+    
+    组件检查 -> Redis [label="连接状态"];
+    Redis -> 组件检查 [label="小车状态"];
+    组件检查 -> RabbitMQ [label="连接状态"];
+    
+    任务处理 -> Redis [label="任务查询"];
+    Redis -> 任务处理 [label="任务详情"];
+    任务处理 -> 指令发送 [label="移动指令"];
+    指令发送 -> RabbitMQ [label="指令发布"];
+    
+    任务请求 -> RabbitMQ [label="任务请求"];
+    RabbitMQ -> 任务处理 [label="任务响应"];
+    
+    状态管理 -> 小车状态 [label="状态更新"];
+    小车状态 -> 状态管理 [label="当前状态"];
+    状态管理 -> 用户界面 [label="状态通知"];
+    
+    系统配置 -> 指令解析 [label="配置参数"];
+    任务判断 -> 任务分配 [label="任务优先级"];
+    
+    Redis -> 任务处理 [label="地图尺寸"];
+    Redis -> 组件检查 [label="地图探索状态"];
+}
